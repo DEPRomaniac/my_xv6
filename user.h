@@ -23,6 +23,15 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int cbps(int);
+int set_sleep(int);
+int get_date(struct rtcdate*);	
+int process_start_time(void); //here
+int ancestor(int);
+int descendant(int);
+
+//user program for creating number of processes
+int createProcess(int);
 
 // ulib.c
 int stat(const char*, struct stat*);
