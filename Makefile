@@ -182,6 +182,12 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_strdiff\
+	_cbps\
+	_setSleep\
+	_startTimeSys\
+	_createProcess\
+	_ancestor\
+	_descendant\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -251,7 +257,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
-	strdiff.c\
+	strdiff.c cbps.c setSleep.c startTimeSys.c ancestor.c descendant.c createProcess.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\

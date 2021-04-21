@@ -89,3 +89,87 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int sys_cbps(void)
+{
+  // struct proc* curproc = myproc()
+  int number = myproc()->tf->edx;
+  int bps = 0;
+
+  if (number < 0)
+    return -1;
+
+  for (int i = number/2; i>0; i--){
+    if (i*i <= number){
+      bps = i;
+      break;
+    }
+  }
+  cprintf("Biggest perfects square for %d is : %d\n", number, bps);
+  
+  return 1;
+}
+
+int
+sys_get_date(void)
+{ 
+  struct rtcdate* date;
+  argptr(0, (void*)(&date), sizeof(*date));
+  cmostime(date);
+  return 0;
+}
+
+int
+sys_set_sleep(void)
+{
+  int n;
+  uint ticks0;
+
+  if(argint(0, &n) < 0)
+    return -1;
+  acquire(&tickslock);
+  ticks0 = ticks;
+  release(&tickslock);
+  for(;;){
+    acquire(&tickslock);
+    if(ticks - ticks0 >= n){
+      release(&tickslock);
+      break;
+    }
+    release(&tickslock);
+  }
+  return 0;
+}
+
+int
+sys_process_start_time(void)
+{
+  int my_time_per_second = myproc()->creation_time / 100;
+  int my_time_fractional = myproc()->creation_time % 100;
+  // double my_time = myproc()->creation_time / 100;
+  cprintf("start process time: %d.%d s\n", my_time_per_second, my_time_fractional);
+  return myproc()->creation_time;
+  // return process_start_time();
+}
+
+int sys_ancestor(void)
+{
+  int process_id;
+
+  if(argint(0, &process_id) < 0)
+    return -1;
+
+  get_ancestors(process_id);
+  return 1;
+}
+
+int sys_descendant(void)
+{
+  int process_id;
+
+  if(argint(0, &process_id) < 0)
+    return -1;
+
+  get_descendants(process_id);
+  return 1; 
+}

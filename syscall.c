@@ -103,6 +103,12 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+extern int sys_cbps(void);
+extern int sys_set_sleep(void);
+extern int sys_get_date(void);
+extern int sys_process_start_time(void); // here
+extern int sys_ancestor(void); // here
+extern int sys_descendant(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -126,6 +132,12 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_cbps]    sys_cbps,
+[SYS_set_sleep] sys_set_sleep,
+[SYS_get_date] sys_get_date,
+[SYS_process_start_time]   sys_process_start_time, // here
+[SYS_ancestor]    sys_ancestor,
+[SYS_descendant]  sys_descendant,
 };
 
 void

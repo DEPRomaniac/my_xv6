@@ -20,3 +20,9 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+#define SYS_cbps 22
+#define SYS_set_sleep 23
+#define SYS_get_date 24
+#define SYS_process_start_time  25
+#define SYS_ancestor  26
+#define SYS_descendant 27

@@ -43,6 +43,7 @@ mycpu(void)
     panic("mycpu called with interrupts enabled\n");
   
   apicid = lapicid();
+
   // APIC IDs are not guaranteed to be contiguous. Maybe we should have
   // a reverse map, or reserve a register to store &cpus[i].
   for (i = 0; i < ncpu; ++i) {
@@ -111,6 +112,7 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
+  p->creation_time = ticks; // adding creation time field for question #2
 
   return p;
 }
@@ -531,4 +533,93 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+void
+get_ancestors(int process_id)
+{
+  struct proc* curproc;
+
+  int process_avail = 0;
+
+  for(int i=0;i<NPROC;i++)
+  {
+    // cprintf("%d ", ptable.proc[i].pid);
+    if(ptable.proc[i].pid == process_id)
+    {
+      curproc = &(ptable.proc[i]);
+      process_avail = 1;
+      break;
+    }
+  }
+  // cprintf("\n");
+
+  if (process_avail == 0)
+  {
+    cprintf("process with pid=%d does not exist\n", process_id);
+    return;
+  }
+
+  struct proc* parproc = curproc->parent;
+  while (curproc->pid > 1){
+    cprintf("""my id"": %d, ""my parent id"": %d\n", curproc->pid, parproc->pid);
+    curproc = parproc;
+    parproc = parproc->parent;
+  }
+
+}
+
+void
+get_descendants(int process_id)
+{
+  struct proc* curproc;
+
+  //find process
+  int process_avail = 0;
+  for(int i=0;i<NPROC;i++)
+  {
+    // cprintf("%d ", ptable.proc[i].pid);
+    if(ptable.proc[i].pid == process_id)
+    {
+      curproc = &(ptable.proc[i]);
+      process_avail = 1;
+      break;
+    }
+  }
+  // cprintf("\n");
+  if (process_avail == 0)
+  {
+    cprintf("process with pid=%d does not exist\n", process_id);
+    return;
+  }
+
+  struct proc* childproc;
+  int min;
+  int child_avail = 1;
+  while (child_avail){
+    //find earliest child
+    min = -1;
+    child_avail = 0;
+    for(int i=0;i<NPROC;i++)
+    {
+      // cprintf("%d ", ptable.proc[i].pid);
+      if(ptable.proc[i].parent == curproc && (ptable.proc[i].creation_time < min || min == -1))
+      {
+        childproc = &(ptable.proc[i]);
+        min = ptable.proc[i].creation_time;
+        child_avail = 1;
+      }
+    }
+    // cprintf("\n");
+    if (child_avail == 0)
+    {
+      cprintf("process with pid=%d does not have any descendants\n", curproc->pid);
+      return;
+    }
+    else
+    {
+      cprintf("""my id"": %d, ""my child id"": %d\n", curproc->pid, childproc->pid);
+      curproc = childproc;
+    }
+  }  
 }
