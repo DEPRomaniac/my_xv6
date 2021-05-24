@@ -188,6 +188,12 @@ UPROGS=\
 	_createProcess\
 	_ancestor\
 	_descendant\
+	_change_queue\
+	_change_prio\
+	_pratio\
+	_plog\
+	_foo_child\
+	_foo\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -258,6 +264,8 @@ EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
 	strdiff.c cbps.c setSleep.c startTimeSys.c ancestor.c descendant.c createProcess.c\
+	foo_child.c\
+	change_queue.c change_prio.c pratio.c plog.c foo.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\

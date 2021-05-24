@@ -110,6 +110,12 @@ extern int sys_process_start_time(void); // here
 extern int sys_ancestor(void); // here
 extern int sys_descendant(void);
 
+extern int sys_change_queue(void);
+extern int sys_change_prio(void);
+extern int sys_pratio(void);
+extern int sys_plog(void);
+
+
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -138,6 +144,11 @@ static int (*syscalls[])(void) = {
 [SYS_process_start_time]   sys_process_start_time, // here
 [SYS_ancestor]    sys_ancestor,
 [SYS_descendant]  sys_descendant,
+
+[SYS_change_queue] sys_change_queue,
+[SYS_change_prio] sys_change_prio,
+[SYS_pratio] sys_pratio,
+[SYS_plog] sys_plog,
 };
 
 void

@@ -30,6 +30,11 @@ int process_start_time(void); //here
 int ancestor(int);
 int descendant(int);
 
+int change_queue(int, int);
+int change_prio(int, int);
+int pratio(int, int, int, int);
+int plog();
+
 //user program for creating number of processes
 int createProcess(int);
 

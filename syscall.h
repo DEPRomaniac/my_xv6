@@ -26,3 +26,8 @@
 #define SYS_process_start_time  25
 #define SYS_ancestor  26
 #define SYS_descendant 27
+
+#define SYS_change_queue 28
+#define SYS_change_prio 29
+#define SYS_pratio 30
+#define SYS_plog 31

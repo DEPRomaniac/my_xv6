@@ -112,7 +112,15 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
+
   p->creation_time = ticks; // adding creation time field for question #2
+
+  p->sched_queue = ROUND_ROBIN;
+  p->my_priority = 1;
+  p->ctime_ratio = 1;
+  p->priority_ratio = 1;
+  p->exec_cyc_ratio = 1;
+  p->exec_cyc = 0;
 
   return p;
 }
@@ -313,6 +321,111 @@ wait(void)
   }
 }
 
+
+float calc_rank(struct proc *p){
+  return (p->priority_ratio / p->my_priority) +
+          (p->ctime_ratio * p->creation_time) +
+          (p->exec_cyc_ratio * p->exec_cyc*0.1);
+}
+
+
+struct proc* rr_scheduler(int* index){
+  struct proc *p;
+  int selected_index = -1;
+  int cur_index;
+  for (int i = 0; i < NPROC; i++){
+    cur_index = ((*index) + i)%NPROC;
+    if(ptable.proc[cur_index].state != RUNNABLE || ptable.proc[cur_index].sched_queue != ROUND_ROBIN)
+      continue;
+
+    p = &ptable.proc[cur_index];
+    selected_index = cur_index;
+    *index = (cur_index+1) % NPROC;
+    break;
+  }
+  if (selected_index < 0){
+    return 0;
+  }
+  return p;
+}
+
+
+struct proc* priority_scheduler(void)
+{
+  struct proc *p;
+  int best_prio;
+  int cur_prio;
+  int best_is_set = 0;
+  struct proc* best_prio_process = 0;
+
+  for(p = ptable.proc ; p < &ptable.proc[NPROC]; p++){
+    if(p->state != RUNNABLE || p->sched_queue != PRIORITY)
+        continue;
+    if (best_is_set == 0){
+      best_prio_process = p;
+      best_prio = p->my_priority;
+      best_is_set = 1;
+    }
+    else{
+      cur_prio = p->my_priority;
+      if (cur_prio < best_prio){
+        best_prio = cur_prio;
+        best_prio_process = p;
+      }
+    }
+  }
+  if (best_is_set == 0)
+    return 0;
+  return best_prio_process;
+}
+
+
+struct proc* bjf_scheduler(void)
+{
+  struct proc* p;
+  float best_rank, p_rank;
+  int best_is_set = 0;
+  struct proc* best_rank_process = 0;
+
+  for(p = ptable.proc ; p < &ptable.proc[NPROC]; p++){
+    if(p->state != RUNNABLE || p->sched_queue != BJF)
+        continue;
+
+    p_rank = calc_rank(p);
+    if (best_is_set == 1 && p_rank < best_rank){
+        best_rank = p_rank;
+        best_rank_process = p;
+    }
+    else{
+      best_is_set = 1;
+      best_rank_process = p;
+      best_rank = p_rank;
+    }
+  }
+  if (best_is_set == 0)
+    return 0;
+  return best_rank_process;
+}
+
+
+struct proc* fcfs_scheduler(void)
+{
+  struct proc* min_creation_time_process = 0;
+  struct proc* p;
+  for(p = ptable.proc ; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->state != RUNNABLE || p->sched_queue != FCFS)
+        continue;
+    if (min_creation_time_process != 0) {
+    // here I find the process with the lowest creation time (the first one that was created)
+      if(p->creation_time < min_creation_time_process->creation_time)
+        min_creation_time_process = p;
+    }
+    else
+      min_creation_time_process = p;
+  }
+  return min_creation_time_process;
+}
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -325,35 +438,55 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *waiting_p;
   struct cpu *c = mycpu();
   c->proc = 0;
   
+  int rr_index = 0;
   for(;;){
     // Enable interrupts on this processor.
     sti();
-
-    // Loop over process table looking for process to run.
+    
     acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+    p = rr_scheduler(&rr_index);
+    if (p == 0)
+    {
+      rr_index = 0;
+      p = priority_scheduler();
+    }
+    if (p == 0)
+      p = bjf_scheduler();
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
+    if (p == 0)
+      p = fcfs_scheduler();
+
+    if(p != 0){
+      p->exec_cyc++;
+
+      for(waiting_p = ptable.proc ; waiting_p < &ptable.proc[NPROC]; waiting_p++){
+        if(waiting_p->pid == 0)
+          continue;
+
+        if(waiting_p->state == RUNNABLE)
+          waiting_p->wtime++;
+
+        if (waiting_p->wtime > 8000 && waiting_p->sched_queue > ROUND_ROBIN){
+            waiting_p->sched_queue--;
+            waiting_p->wtime = 0;
+        }
+      }
+      p->wtime = 0;
+
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
       c->proc = 0;
     }
-    release(&ptable.lock);
 
+    release(&ptable.lock);
   }
 }
 
@@ -622,4 +755,145 @@ get_descendants(int process_id)
       curproc = childproc;
     }
   }  
+}
+
+void change_sched_queue(int pid, int new_queue)
+{
+  struct proc* p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      p->sched_queue = new_queue;
+      break;
+    }
+  }
+}
+
+void change_proc_prio(int pid, int prio){
+  struct proc* p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      p->my_priority = prio;
+      break;
+    }
+  } 
+}
+
+void pratio(int pid, int priority_ratio, int ctime_ratio, int exec_cyc_ratio)
+{
+  struct proc* p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->pid == pid)
+    {
+      p->priority_ratio = priority_ratio;
+      p->ctime_ratio = ctime_ratio;
+      p->exec_cyc_ratio = exec_cyc_ratio;
+      break;
+    }
+  }
+}
+
+char* state_names[] = {"UNUSED", "EMBRYO", "SLEEPING", "RUNNABLE", "RUNNING", "ZOMBIE" };
+char* queue_name[] = {"NORMAL", "RR", "PRIORITY", "BJF", "FCFS"};
+char temp[32] = "";
+
+char* itos(int x, char* buf){
+  // temp_res = "";
+  int i = 0;
+  int isNegative = 0;
+  if (x < 0) {
+    isNegative = 1;
+    x *= -1;
+  }
+  if (x == 0) buf[i++]= '0';
+  while (x > 0){
+    buf[i++] = (x%10) + '0';
+    x /= 10;
+  }
+  if (isNegative) buf[i++] = '-';
+  buf[i] = '\0';
+
+  // cprintf("i = %d\n", i);
+  char t;
+  for(int j = 0; j < (i)/2; j++){
+    t = buf[j];
+    buf[j] = buf[i-1-j];
+    buf[i-1-j] = t;
+  }
+  return buf;
+}
+
+char* ftos(float x, char* buf){
+  int nat = (int)x;
+  float dec = (float) (x - nat);
+  char my_temp[32];
+  char* nat_str = itos(nat, my_temp);
+
+  char dec_str[32];
+  int i = 0;
+  if (dec == 0) dec_str[i++] = '0';
+
+  for(int j = 0; j < 3; j++){
+  // while(dec > 0){
+    dec *= 10;
+    // cprintf("float part = %d\n", (int)dec );
+    dec_str[i++] = (int)dec + '0';
+    dec -= (int)dec;
+  }
+  dec_str[i] = '\0';
+  // cprintf
+  for(int j = 0; j < strlen(nat_str); j++){
+    buf[j] = nat_str[j];
+  }
+  buf[strlen(nat_str)] = '.';
+  int index = 1 + strlen(nat_str);
+  for (int j = 0; j < i; j++){
+    buf[index++] = dec_str[j];
+  }
+  buf[index] = '\0';
+  return buf; 
+}
+
+void plog(void)
+{
+  struct proc *p;
+  float p_rank;
+
+  // cprintf("ftos example: %s, %d\n", ftos(4438.234, temp), strlen(ftos(4438.234, temp)));
+  cprintf("------------------------------------------------------------------------------\n");
+  cprintf("name    pid  state      queue    priority  rank      ratios      Ecycle  Wtime\n");
+  cprintf("                                                (prio,ctime,Ecyc)             \n");
+  cprintf("------------------------------------------------------------------------------\n");
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == 0)
+      continue;
+
+    p_rank = calc_rank(p);
+    cprintf("%s", p->name);
+    for (int i = 0; i < 8 - strlen(p->name); i++) cprintf(" ");
+    // cprintf("   ");
+    cprintf("%d", p->pid);
+    for (int i = 0; i < 5 - strlen(itos(p->pid, temp)); i++) cprintf(" ");
+    // cprintf("   ");
+    cprintf("%s", state_names[p->state]);
+    for (int i = 0; i < 11 - strlen(state_names[p->state]); i++) cprintf(" ");
+    // cprintf("   ");
+    cprintf("%s", queue_name[p->sched_queue]);
+    for (int i = 0; i < 9 - strlen(queue_name[p->sched_queue]); i++) cprintf(" ");
+    // cprintf("   ");
+    cprintf("%d", p->my_priority);
+    for (int i = 0; i < 10 - strlen(itos(p->my_priority, temp)); i++) cprintf(" ");
+    // cprintf("   ");
+    cprintf("%s", ftos(p_rank, temp));
+    for (int i = 0; i < 10 - strlen(ftos(p_rank, temp)); i++) cprintf(" ");
+    // cprintf("   ");
+    cprintf("%d,%d,%d", p->priority_ratio, p->ctime_ratio, p->exec_cyc_ratio);
+    for (int i = 0; i < 12 - 2 - strlen(itos(p->priority_ratio, temp)) - strlen(itos(p->ctime_ratio, temp)) - strlen(itos(p->exec_cyc_ratio, temp)); i++) cprintf(" ");
+    // cprintf("      ");
+    cprintf("%d", p->exec_cyc);
+    for (int i = 0; i < 8 - strlen(itos(p->exec_cyc, temp)); i++) cprintf(" ");
+    // cprintf("   ");
+    cprintf("%d\n", p->wtime);
+  }
+  cprintf("------------------------------------------------------------------------------\n");
 }

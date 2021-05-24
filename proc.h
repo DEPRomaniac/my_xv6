@@ -16,6 +16,15 @@ extern int ncpu;
 void get_ancestors(int process_id);
 void get_descendants(int process_id);
 
+void change_sched_queue(int pid, int new_queue);
+void change_proc_prio(int pid, int prio);
+void pratio(int pid, int priority_ratio, int ctime_ratio, int exec_cyc_ratio);
+void plog(void);
+struct proc* bjf_scheduler(void);
+struct proc* fcfs_scheduler(void);
+struct proc* priority_scheduler(void);
+struct proc* rr_scheduler(int* index);
+
 //PAGEBREAK: 17
 // Saved registers for kernel context switches.
 // Don't need to save all the segment registers (%cs, etc),
@@ -52,7 +61,18 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  int creation_time;
+  long int creation_time;
+
+  int sched_queue;
+  int my_priority;
+
+  int exec_cyc;
+  long int wtime;
+
+  int priority_ratio;
+  int exec_cyc_ratio;
+  int ctime_ratio;
+  // float rank;
 };
 
 // Process memory is laid out contiguously, low addresses first:

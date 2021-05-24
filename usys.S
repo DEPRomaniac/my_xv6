@@ -35,3 +35,8 @@ SYSCALL(get_date)
 SYSCALL(process_start_time)
 SYSCALL(ancestor)
 SYSCALL(descendant)
+
+SYSCALL(change_queue)
+SYSCALL(change_prio)
+SYSCALL(pratio)
+SYSCALL(plog)

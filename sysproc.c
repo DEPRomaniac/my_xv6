@@ -173,3 +173,61 @@ int sys_descendant(void)
   get_descendants(process_id);
   return 1; 
 }
+
+////////////////////////////////////////////////lab3
+int 
+sys_change_queue(void)
+{
+  int pid, new_queue;
+
+  if(argint(0, &pid) < 0)
+    return -1;
+  if(argint(1, &new_queue) < 0)
+    return -1;
+
+  change_sched_queue(pid, new_queue);
+
+  return 1;
+}
+
+int 
+sys_change_prio(void)
+{
+  int pid;
+  int my_priority;
+
+  if(argint(0, &pid) < 0)
+    return -1;
+  if(argint(1, &my_priority) < 0)
+    return -1;
+  
+  change_proc_prio(pid, my_priority);
+
+  return 1;
+}
+
+int 
+sys_pratio(void)
+{
+  int pid, prio_ratio, ctime_ratio, exec_cyc_ratio;
+
+  if(argint(0, &pid) < 0)
+    return -1;
+  if(argint(1, &prio_ratio) < 0)
+    return -1;
+  if(argint(2, &ctime_ratio) < 0)
+    return -1;
+  if(argint(3, &exec_cyc_ratio) < 0)
+    return -1;
+
+  pratio(pid, prio_ratio, ctime_ratio, exec_cyc_ratio);
+
+  return 1;
+}
+
+int 
+sys_plog(void)
+{
+  plog();
+  return 1;
+}
