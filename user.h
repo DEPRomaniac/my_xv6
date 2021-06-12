@@ -1,5 +1,6 @@
 struct stat;
 struct rtcdate;
+struct spinlock;
 
 // system calls
 int fork(void);
@@ -34,6 +35,11 @@ int change_queue(int, int);
 int change_prio(int, int);
 int pratio(int, int, int, int);
 int plog();
+
+int acquire_rec(struct spinlock*);
+int release_rec(struct spinlock*);
+int init_lock(struct spinlock*);
+
 
 //user program for creating number of processes
 int createProcess(int);

@@ -115,6 +115,9 @@ extern int sys_change_prio(void);
 extern int sys_pratio(void);
 extern int sys_plog(void);
 
+extern int sys_acquire_rec(void);
+extern int sys_release_rec(void);
+extern int sys_init_lock(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -149,6 +152,10 @@ static int (*syscalls[])(void) = {
 [SYS_change_prio] sys_change_prio,
 [SYS_pratio] sys_pratio,
 [SYS_plog] sys_plog,
+
+[SYS_acquire_rec] sys_acquire_rec,
+[SYS_release_rec] sys_release_rec,
+[SYS_init_lock] sys_init_lock,
 };
 
 void

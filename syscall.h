@@ -31,3 +31,7 @@
 #define SYS_change_prio 29
 #define SYS_pratio 30
 #define SYS_plog 31
+
+#define SYS_acquire_rec 32
+#define SYS_release_rec 33
+#define SYS_init_lock 34

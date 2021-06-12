@@ -40,3 +40,7 @@ SYSCALL(change_queue)
 SYSCALL(change_prio)
 SYSCALL(pratio)
 SYSCALL(plog)
+
+SYSCALL(acquire_rec)
+SYSCALL(release_rec)
+SYSCALL(init_lock)
