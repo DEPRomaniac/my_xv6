@@ -20,6 +20,13 @@ void change_sched_queue(int pid, int new_queue);
 void change_proc_prio(int pid, int prio);
 void pratio(int pid, int priority_ratio, int ctime_ratio, int exec_cyc_ratio);
 void plog(void);
+void rwinit();
+int rwtest(uint rw, uint priority);
+
+void add_reader(int rindex);
+void add_writer(int windex);
+struct proc* find_proc(uint process_id);
+
 struct proc* bjf_scheduler(void);
 struct proc* fcfs_scheduler(void);
 struct proc* priority_scheduler(void);
@@ -73,6 +80,7 @@ struct proc {
   int exec_cyc_ratio;
   int ctime_ratio;
   // float rank;
+  int ticket;
 };
 
 // Process memory is laid out contiguously, low addresses first:

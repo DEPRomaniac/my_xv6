@@ -6,17 +6,17 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-// #include "ticketlock.h"
+#include "ticketlock.h"
 
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
 
-struct spinlock mutex;
-struct spinlock queue;
+struct ticketlock tl;
+struct ticketlock mutex;
+struct ticketlock queue;
 int reader;
-int writer;
 int value;
 
 static struct proc *initproc;
@@ -924,65 +924,57 @@ struct {
 } rw_mutex;
 
 void rwinit(){
-  initlock(&mutex, "mutex");
-  initlock(&queue, "queue");
+  initlock_t(&mutex);
+  initlock_t(&queue);
   reader=0;
   value=0; 
-  writer=0;
 }
 
-int rwtest(uint rw, uint priority){
+int rwtest(uint rw){
   if(rw>1)
     return 2;
   if (rw==1)
   { 
-    acquire(&mutex);
-    writer++;
-    release(&mutex);
   //  cprintf("%s\n","W Qeue ACQ");
-    acquire(&queue);
+    acquire_t(&queue);
     
   //  cprintf("%s\n","W mutex ACQ");
-    acquire(&mutex);
+    acquire_t(&mutex);
     value++;
     cprintf("%s%d\n","I'm a writer, I incremented the value and value=",value);
   //  cprintf("%s\n","W mutex REL");
-    release(&mutex);
+    release_t(&mutex);
   //  cprintf("%s\n","W Queue REL");  
-    release(&queue);
-
-    acquire(&mutex);
-    writer--;
-    release(&mutex);
+    release_t(&queue);
   }
   else
   {
   //  cprintf("%s\n","R mutex ACQ");
-    acquire(&mutex);
+    acquire_t(&mutex);
     
     reader++;
     
     if(reader==1){
   //    cprintf("%s\n","R QEUE ACQ");
-      acquire(&queue);      
+      acquire_t(&queue);      
     }
 
   //  cprintf("%s\n","R mutex REL");
-    release(&mutex);
+    release_t(&mutex);
     
 
     cprintf("%s%d\n","I'm a reader. value=",value);
   //  cprintf("%s\n","R mutex ACQ");
-    acquire(&mutex);
+    acquire_t(&mutex);
     reader--;
-    if(reader==0 || (priority==1 && writer>1)){
+    if(reader==0){
   //    cprintf("%s\n","R QUEUE REL");
-      release(&queue);
+      release_t(&queue);
     }
-    release(&mutex);
+    release_t(&mutex);
   } 
   return 0;
-  // cprintf("\n");
+  cprintf("\n");
 
 }
 

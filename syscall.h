@@ -37,3 +37,5 @@
 #define SYS_init_lock 34
 #define SYS_rwinit 35
 #define SYS_rwtest 36
+#define SYS_add_reader 37
+#define SYS_add_writer 38

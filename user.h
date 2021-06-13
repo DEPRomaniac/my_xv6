@@ -40,8 +40,9 @@ int acquire_rec(struct spinlock*);
 int release_rec(struct spinlock*);
 int init_lock(struct spinlock*);
 int rwinit();
-int rwtest(uint pattern);
-
+int rwtest(uint pattern, uint priority);
+// int add_reader();
+// int add_writer();
 
 //user program for creating number of processes
 int createProcess(int);

@@ -235,8 +235,8 @@ sys_plog(void)
 int
 sys_acquire_rec(void)
 {
-  struct spinlock* lk;
-  argptr(0, (void*)(&lk), sizeof(lk));
+  // struct spinlock* lk;
+  // argptr(0, (void*)(&lk), sizeof(lk));
   acquire_rec(&test_lock);
   return 1;
 }
@@ -244,8 +244,8 @@ sys_acquire_rec(void)
 int
 sys_release_rec(void)
 {
-  struct spinlock* lk;
-  argptr(0, (void*)(&lk), sizeof(lk));
+  // struct spinlock* lk;
+  // argptr(0, (void*)(&lk), sizeof(lk));
   release_rec(&test_lock);
   return 1;
 }
@@ -258,12 +258,45 @@ sys_init_lock(void){
   return 1;
 }
 
+
 int
 sys_rwinit(void){
-
+  rwinit();
+  return 1; 
 }
 
 int
 sys_rwtest(void){
-  
+  int pattern;
+  int priority;
+  if(argint(0, &pattern) < 0){
+    // cprintf("wat\n");
+    return -1;
+  }
+  if(argint(1, &priority) < 0){
+    // cprintf("wat\n");
+    return -1;
+  }
+  // cprintf("rwtest started...\n");
+  rwtest((uint)pattern, (uint)priority);
+  // cprintf("rwtest finished...\n");
+  return 1;
+}
+
+int
+sys_add_reader(void){
+  int rindex;
+  if(argint(0, &rindex) < 0)
+    return -1;
+  add_reader(rindex);
+  return 1;
+}
+
+int
+sys_add_writer(void){
+  int windex;
+  if(argint(0, &windex) < 0)
+    return -1;
+  add_writer(windex);
+  return 1;
 }

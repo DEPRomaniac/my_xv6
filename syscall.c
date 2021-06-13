@@ -120,6 +120,8 @@ extern int sys_release_rec(void);
 extern int sys_init_lock(void);
 extern int sys_rwinit(void);
 extern int sys_rwtest(void);
+extern int sys_add_reader(void);
+extern int sys_add_writer(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -160,6 +162,8 @@ static int (*syscalls[])(void) = {
 [SYS_init_lock] sys_init_lock,
 [SYS_rwinit] sys_rwinit,
 [SYS_rwtest] sys_rwtest,
+[SYS_add_reader] sys_add_reader,
+[SYS_add_writer] sys_add_writer,
 };
 
 void
