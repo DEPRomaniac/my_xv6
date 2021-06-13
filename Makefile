@@ -195,6 +195,7 @@ UPROGS=\
 	_foo_child\
 	_foo\
 	_test_spinlock_rec\
+	_rwtest\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -267,7 +268,7 @@ EXTRA=\
 	strdiff.c cbps.c setSleep.c startTimeSys.c ancestor.c descendant.c createProcess.c\
 	foo_child.c\
 	change_queue.c change_prio.c pratio.c plog.c foo.c\
-	test_spinlock_rec.c\
+	test_spinlock_rec.c rwtest.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\

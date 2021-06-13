@@ -135,6 +135,8 @@ void            pushcli(void);
 void            popcli(void);
 void            acquire_rec(struct spinlock*);
 void            release_rec(struct spinlock*);
+extern struct spinlock test_lock;
+// extern struct spinlock test_lock;
 
 // sleeplock.c
 void            acquiresleep(struct sleeplock*);

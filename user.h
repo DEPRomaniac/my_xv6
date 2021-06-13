@@ -39,6 +39,8 @@ int plog();
 int acquire_rec(struct spinlock*);
 int release_rec(struct spinlock*);
 int init_lock(struct spinlock*);
+int rwinit();
+int rwtest(uint pattern);
 
 
 //user program for creating number of processes

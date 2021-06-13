@@ -237,7 +237,7 @@ sys_acquire_rec(void)
 {
   struct spinlock* lk;
   argptr(0, (void*)(&lk), sizeof(lk));
-  acquire_rec(lk);
+  acquire_rec(&test_lock);
   return 1;
 }
 
@@ -246,7 +246,7 @@ sys_release_rec(void)
 {
   struct spinlock* lk;
   argptr(0, (void*)(&lk), sizeof(lk));
-  release_rec(lk);
+  release_rec(&test_lock);
   return 1;
 }
 
@@ -254,6 +254,16 @@ int
 sys_init_lock(void){
   struct spinlock* lk;
   argptr(0, (void*)(&lk), sizeof(lk));
-  initlock(lk, "test_lk");
+  initlock(&test_lock, "test_lk");
   return 1;
+}
+
+int
+sys_rwinit(void){
+
+}
+
+int
+sys_rwtest(void){
+  
 }

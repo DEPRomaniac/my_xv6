@@ -9,6 +9,8 @@
 #include "proc.h"
 #include "spinlock.h"
 
+struct spinlock test_lock;
+
 void
 initlock(struct spinlock *lk, char *name)
 {
@@ -16,6 +18,7 @@ initlock(struct spinlock *lk, char *name)
   lk->locked = 0;
   lk->rec_locked = 0;
   lk->cpu = 0;
+  // lk->p = 0;
 }
 
 // Acquire the lock.
@@ -130,67 +133,48 @@ void
 acquire_rec(struct spinlock *lk)
 {
   pushcli(); // disable interrupts to avoid deadlock.
+  // struct proc* p = myproc();
+  
+  // while(lk->p != 0 && lk->p != p){
+  //   cprintf("lk->p = %d", lk->p-)
+  // }
+
   if(holding(lk)){
-    // panic("acquire");
-    // ++lk->locked;
-    // cprintf("bijanbe hastam\n");
-    // uint temp_locked = lk->rec_locked+1;
-    // cprintf("bijanbe nistam\n");
-    // cprintf("wtf\n");
     lk->rec_locked++;
-    // while(xchg(&lk->rec_locked, temp_locked) != 0){
-    //   cprintf("lk->rec_locked = %d, temp_locked = %d\n", lk->rec_locked, temp_locked);
-    // }
-    // cprintf("wtf passed\n");
   }
   else{
-    // cprintf("hello1\n");
+    // lk->p = myproc();
     while(xchg(&lk->locked, 1) != 0)
     ;
-    // cprintf("hello2\n");
     while(xchg(&lk->rec_locked, 1) != 0)
     ;
   }
-  // Tell the C compiler and the processor to not move loads or stores
-  // past this point, to ensure that the critical section's memory
-  // references happen after the lock is acquired.
   __sync_synchronize();
 
-  // Record info about lock acquisition for debugging.
   lk->cpu = mycpu();
   getcallerpcs(&lk, lk->pcs);
-  popcli();
+  // popcli();
 }
 
 // Release the lock.
 void
 release_rec(struct spinlock *lk)
 {
-  pushcli();
-  if(!holding(lk))
+  // pushcli();
+  // struct proc* p = myproc();
+
+  if(!holding(lk) /*&& lk->p != p*/)
     panic("release");
 
   if (lk->rec_locked == 1){
     lk->pcs[0] = 0;
     lk->cpu = 0;
+    // lk->p = 0;
   }
-  lk->rec_locked--;
-  // Tell the C compiler and the processor to not move loads or stores
-  // past this point, to ensure that all the stores in the critical
-  // section are visible to other cores before the lock is released.
-  // Both the C compiler and the hardware may re-order loads and
-  // stores; __sync_synchronize() tells them both not to.
   __sync_synchronize();
-
-  // Release the lock, equivalent to lk->locked = 0.
-  // This code can't use a C assignment, since it might
-  // not be atomic. A real OS would use C atomics here.
-
-  
-  // uint temp_locked = lk->locked - 1;
-  if (lk->rec_locked == 0)
+  lk->rec_locked--;
+  if (lk->rec_locked == 0){
     asm volatile("movl $0, %0" : "+m" (lk->locked) : );
-    // xchg(&lk->locked, 0);
-
+  }
   popcli();
 }

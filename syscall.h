@@ -35,3 +35,5 @@
 #define SYS_acquire_rec 32
 #define SYS_release_rec 33
 #define SYS_init_lock 34
+#define SYS_rwinit 35
+#define SYS_rwtest 36

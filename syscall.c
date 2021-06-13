@@ -118,6 +118,8 @@ extern int sys_plog(void);
 extern int sys_acquire_rec(void);
 extern int sys_release_rec(void);
 extern int sys_init_lock(void);
+extern int sys_rwinit(void);
+extern int sys_rwtest(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -156,6 +158,8 @@ static int (*syscalls[])(void) = {
 [SYS_acquire_rec] sys_acquire_rec,
 [SYS_release_rec] sys_release_rec,
 [SYS_init_lock] sys_init_lock,
+[SYS_rwinit] sys_rwinit,
+[SYS_rwtest] sys_rwtest,
 };
 
 void
